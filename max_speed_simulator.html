@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>最強速力シミュレーター</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0d1b2e;
+    --navy2: #132438;
+    --navy3: #1a3050;
+    --accent: #3b7dd8;
+    --accent2: #5a9ee8;
+    --text: #e8eef6;
+    --text2: #8faac8;
+    --border: rgba(59,125,216,0.25);
+    --card: #152030;
+    --input-bg: #0f1e30;
+  }
+  body { background: var(--navy); min-height: 100vh; color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; }
+  .page-wrapper { max-width: 520px; width: 100%; margin: 0 auto; padding: 0 0 40px; }
+  .back-link { display: inline-block; padding: 14px 20px; color: var(--text2); font-size: 13px; cursor: pointer; text-decoration: none; }
+  .back-link:hover { color: var(--text); }
+  .badge { display: block; text-align: center; font-size: 12px; color: var(--text2); background: var(--navy2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 16px; width: fit-content; margin: 0 auto 10px; }
+  h1 { text-align: center; font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 6px; }
+  .subtitle { text-align: center; font-size: 13px; color: var(--text2); margin-bottom: 24px; }
+  .section-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 0 16px 16px; }
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 14px; font-weight: 600; color: var(--text); }
+  .section-icon { width: 28px; height: 28px; border-radius: 6px; background: rgba(59,125,216,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  input[type=number] { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; padding: 10px 12px; outline: none; }
+  input[type=number]:focus { border-color: var(--accent); }
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .toggle-row { margin-bottom: 12px; }
+  .toggle-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; }
+  .toggle-group { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .toggle-btn { background: var(--input-bg); border: none; color: var(--text2); padding: 10px; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .toggle-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+  .toggle-btn:hover:not(.active) { background: var(--navy3); }
+  .calc-btn { display: block; width: calc(100% - 32px); margin: 0 16px 20px; padding: 16px; border-radius: 12px; background: var(--accent); border: none; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; transition: background 0.15s; }
+  .calc-btn:hover { background: var(--accent2); }
+  .result-card { background: var(--navy2); border: 1px solid var(--border); border-radius: 12px; margin: 0 16px 20px; padding: 0; overflow: hidden; display: none; }
+  .result-header { background: rgba(59,125,216,0.15); padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--text2); border-bottom: 1px solid var(--border); }
+  .result-main { padding: 20px; }
+  .result-value { font-size: 42px; font-weight: 700; color: var(--accent2); letter-spacing: -1px; }
+  .result-unit { font-size: 18px; color: var(--text2); margin-left: 4px; }
+  .result-formula { margin-top: 12px; font-size: 12px; color: var(--text2); background: var(--input-bg); border-radius: 8px; padding: 10px 14px; line-height: 1.8; }
+  .error-card { background: rgba(220,60,60,0.1); border: 1px solid rgba(220,60,60,0.3); border-radius: 12px; margin: 0 16px 20px; padding: 16px; color: #f08080; font-size: 13px; display: none; }
+  .step-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid rgba(59,125,216,0.1); }
+  .step-row:last-child { border-bottom: none; }
+  .step-label { color: var(--text2); }
+  .step-val { color: var(--text); font-weight: 500; }
+  .footer { text-align: center; font-size: 11px; color: var(--text2); padding: 0 16px 24px; line-height: 1.7; }
+  .hint { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<a class="back-link" href="#">← ポータルへ戻る</a>
+<div class="badge">小安則 第2条 ― 最強速力算出</div>
+<h1>最強速力<br>シミュレーター</h1>
+<p class="subtitle">船体情報とエンジン情報を入力してVを算出してください</p>
+
+<div class="section-card">
+  <div class="section-header"><div class="section-icon">⛵</div>船体情報</div>
+  <div class="grid2">
+    <div><label>満載排水量 Δ (トン) ※未入力で自動計算</label><input type="number" id="delta" placeholder="自動計算" step="0.01" min="0"></div>
+    <div><label>船の長さ L (m)</label><input type="number" id="L" value="6" step="0.01" min="0"></div>
+  </div>
+  <p class="hint">Δを自動計算する場合は以下を入力してください</p>
+  <div class="grid2">
+    <div><label>船幅 B (m)</label><input type="number" id="B" value="1.5" step="0.01" min="0"></div>
+    <div><label>軽荷状態の乾げん f₀ (m)</label><input type="number" id="f0" value="0.51" step="0.001" min="0"></div>
+  </div>
+  <div class="grid2">
+    <div><label>貨物の質量 W (t)</label><input type="number" id="W" value="0" step="0.01" min="0"></div>
+    <div><label>最大搭載人員 N (人)</label><input type="number" id="N" value="2" step="1" min="0"></div>
+  </div>
+</div>
+
+<div class="section-card">
+  <div class="section-header"><div class="section-icon">⚙️</div>エンジン情報</div>
+  <div class="toggle-row">
+    <span class="toggle-label">出力単位</span>
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="btn-kw" onclick="setUnit('kW')">kW</button>
+      <button class="toggle-btn" id="btn-ps" onclick="setUnit('PS')">PS (馬力)</button>
+    </div>
+  </div>
+  <div class="grid2">
+    <div><label id="engine-label">連続最大出力 (kW)</label><input type="number" id="engine" value="40" step="0.1" min="0"></div>
+  </div>
+</div>
+
+<button class="calc-btn" onclick="calculate()">算 出 す る</button>
+
+<div class="error-card" id="error-card"></div>
+<div class="result-card" id="result-card">
+  <div class="result-header">最強速力 V（算出結果）</div>
+  <div class="result-main">
+    <div><span class="result-value" id="result-v">—</span><span class="result-unit">ノット</span></div>
+    <div class="result-formula" id="result-steps"></div>
+  </div>
+</div>
+
+<div class="footer">本ツールは小安則第2条に基づく参考計算です。<br>最終判断は必ず日本小型船舶検査機構にご確認ください。</div>
+
+</div><!-- /.page-wrapper -->
+<script>
+let unit = 'kW';
+
+function setUnit(u) {
+  unit = u;
+  document.getElementById('btn-kw').classList.toggle('active', u === 'kW');
+  document.getElementById('btn-ps').classList.toggle('active', u === 'PS');
+  document.getElementById('engine-label').textContent = u === 'kW' ? '連続最大出力 (kW)' : '連続最大出力 (PS)';
+}
+
+function calculate() {
+  const L = parseFloat(document.getElementById('L').value);
+  const B = parseFloat(document.getElementById('B').value);
+  const f0 = parseFloat(document.getElementById('f0').value);
+  const W = parseFloat(document.getElementById('W').value) || 0;
+  const N = parseFloat(document.getElementById('N').value) || 0;
+  const engine = parseFloat(document.getElementById('engine').value);
+  const deltaInput = parseFloat(document.getElementById('delta').value);
+
+  const errEl = document.getElementById('error-card');
+  const resEl = document.getElementById('result-card');
+  errEl.style.display = 'none';
+  resEl.style.display = 'none';
+
+  if (isNaN(L) || L <= 0) { showError('船の長さ L を正しく入力してください。'); return; }
+  if (isNaN(engine) || engine <= 0) { showError('連続最大出力を正しく入力してください。'); return; }
+
+  let steps = [];
+  let delta;
+
+  if (!isNaN(deltaInput) && deltaInput > 0) {
+    delta = deltaInput;
+    steps.push({ label: 'Δ（入力値）', val: delta.toFixed(3) + ' トン' });
+  } else {
+    if (isNaN(B) || B <= 0 || isNaN(f0)) {
+      showError('Δを自動計算するには 船幅 B と乾げん f₀ を入力してください。');
+      return;
+    }
+    const dCalc = f0 - (0.075 * N + W) / (0.78 * L * B);
+    delta = 0.5 * L * B * dCalc;
+    steps.push({ label: '喫水 d = f₀ − (0.075N+W)/(0.78LB)', val: dCalc.toFixed(4) + ' m' });
+    steps.push({ label: 'Δ = 0.5 × L × B × d', val: delta.toFixed(4) + ' トン' });
+  }
+
+  if (delta <= 0) { showError('満載排水量 Δ が 0 以下になりました。入力値を確認してください。'); return; }
+
+  let V, formula, ratio, ratioLabel, capNote;
+
+  if (unit === 'kW') {
+    ratio = engine / delta;
+    ratioLabel = 'kW/Δ';
+    if (ratio > 88) {
+      capNote = 'kW/Δ > 88 のため kW/Δ = 88 として計算';
+    }
+    V = 0.914 * Math.sqrt(L) * Math.pow(Math.min(ratio, 88), 0.623);
+    formula = 'V = 0.914 × √L × (kW/Δ)^0.623';
+  } else {
+    ratio = engine / delta;
+    ratioLabel = 'PS/Δ';
+    if (ratio > 120) {
+      capNote = 'PS/Δ > 120 のため PS/Δ = 120 として計算';
+    }
+    V = 0.755 * Math.sqrt(L) * Math.pow(Math.min(ratio, 120), 0.623);
+    formula = 'V = 0.755 × √L × (PS/Δ)^0.623';
+  }
+
+  steps.push({ label: ratioLabel, val: ratio.toFixed(3) });
+  if (capNote) steps.push({ label: '上限補正', val: capNote });
+  steps.push({ label: '計算式', val: formula });
+
+  const stepsHtml = steps.map(s =>
+    `<div class="step-row"><span class="step-label">${s.label}</span><span class="step-val">${s.val}</span></div>`
+  ).join('');
+
+  document.getElementById('result-v').textContent = V.toFixed(2);
+  document.getElementById('result-steps').innerHTML = stepsHtml;
+  resEl.style.display = 'block';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-card');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>

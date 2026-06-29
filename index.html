@@ -54,38 +54,59 @@
   .step-val { color: var(--text); font-weight: 500; }
   .footer { text-align: center; font-size: 11px; color: var(--text2); padding: 0 16px 24px; line-height: 1.7; }
   .hint { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 4px 0 12px; }
 </style>
 </head>
 <body>
 <div class="page-wrapper">
 
-  <a href="https://itoshiaki2008-coder.github.io/portal/"
-     style="display:inline-flex;align-items:center;gap:6px;
-            color:#7a94b8;font-size:13px;text-decoration:none;
-            font-family:'Noto Sans JP',sans-serif;
-            transition:color 0.15s;"
-     onmouseover="this.style.color='#64b5f6'"
-     onmouseout="this.style.color='#7a94b8'">
-    ← ポータルへ戻る
-  </a>
+<a class="back-link" href="#">← ポータルへ戻る</a>
 <div class="badge">小安則 第2条 ― 最強速力算出</div>
 <h1>最強速力<br>シミュレーター</h1>
 <p class="subtitle">船体情報とエンジン情報を入力してVを算出してください</p>
 
 <div class="section-card">
   <div class="section-header"><div class="section-icon">⛵</div>船体情報</div>
+
   <div class="grid2">
-    <div><label>満載排水量 Δ (トン) ※未入力で自動計算</label><input type="number" id="delta" placeholder="自動計算" step="0.01" min="0"></div>
-    <div><label>船の長さ L (m)</label><input type="number" id="L" value="6" step="0.01" min="0"></div>
+    <div>
+      <label>満載排水量 Δ (トン)　※未入力で自動計算</label>
+      <input type="number" id="delta" placeholder="自動計算" step="0.01" min="0">
+    </div>
+    <div>
+      <label>船の長さ L (m)</label>
+      <input type="number" id="L" value="6" step="0.01" min="0">
+    </div>
   </div>
+
+  <hr class="divider">
   <p class="hint">Δを自動計算する場合は以下を入力してください</p>
+
   <div class="grid2">
-    <div><label>船幅 B (m)</label><input type="number" id="B" value="1.5" step="0.01" min="0"></div>
-    <div><label>軽荷状態の乾げん f₀ (m)</label><input type="number" id="f0" value="0.51" step="0.001" min="0"></div>
+    <div>
+      <label>船幅 B (m)</label>
+      <input type="number" id="B" value="1.5" step="0.01" min="0">
+    </div>
+    <div>
+      <label>船の深さ D (m)</label>
+      <input type="number" id="Dval" value="0.9" step="0.001" min="0">
+    </div>
   </div>
   <div class="grid2">
-    <div><label>貨物の質量 W (t)</label><input type="number" id="W" value="0" step="0.01" min="0"></div>
-    <div><label>最大搭載人員 N (人)</label><input type="number" id="N" value="2" step="1" min="0"></div>
+    <div>
+      <label>軽荷状態の乾げん f₀ (m)</label>
+      <input type="number" id="f0" value="0.51" step="0.001" min="0">
+    </div>
+    <div>
+      <label>貨物の質量 W (t)</label>
+      <input type="number" id="W" value="0" step="0.01" min="0">
+    </div>
+  </div>
+  <div class="grid2">
+    <div>
+      <label>最大搭載人員 N (人)</label>
+      <input type="number" id="N" value="2" step="1" min="0">
+    </div>
   </div>
 </div>
 
@@ -99,7 +120,10 @@
     </div>
   </div>
   <div class="grid2">
-    <div><label id="engine-label">連続最大出力 (kW)</label><input type="number" id="engine" value="40" step="0.1" min="0"></div>
+    <div>
+      <label id="engine-label">連続最大出力 (kW)</label>
+      <input type="number" id="engine" value="40" step="0.1" min="0">
+    </div>
   </div>
 </div>
 
@@ -128,11 +152,12 @@ function setUnit(u) {
 }
 
 function calculate() {
-  const L = parseFloat(document.getElementById('L').value);
-  const B = parseFloat(document.getElementById('B').value);
-  const f0 = parseFloat(document.getElementById('f0').value);
-  const W = parseFloat(document.getElementById('W').value) || 0;
-  const N = parseFloat(document.getElementById('N').value) || 0;
+  const L      = parseFloat(document.getElementById('L').value);
+  const B      = parseFloat(document.getElementById('B').value);
+  const Dval   = parseFloat(document.getElementById('Dval').value);
+  const f0     = parseFloat(document.getElementById('f0').value);
+  const W      = parseFloat(document.getElementById('W').value) || 0;
+  const N      = parseFloat(document.getElementById('N').value) || 0;
   const engine = parseFloat(document.getElementById('engine').value);
   const deltaInput = parseFloat(document.getElementById('delta').value);
 
@@ -141,23 +166,28 @@ function calculate() {
   errEl.style.display = 'none';
   resEl.style.display = 'none';
 
-  if (isNaN(L) || L <= 0) { showError('船の長さ L を正しく入力してください。'); return; }
+  if (isNaN(L) || L <= 0)           { showError('船の長さ L を正しく入力してください。'); return; }
   if (isNaN(engine) || engine <= 0) { showError('連続最大出力を正しく入力してください。'); return; }
 
   let steps = [];
   let delta;
 
   if (!isNaN(deltaInput) && deltaInput > 0) {
+    // Δ直接入力
     delta = deltaInput;
     steps.push({ label: 'Δ（入力値）', val: delta.toFixed(3) + ' トン' });
   } else {
-    if (isNaN(B) || B <= 0 || isNaN(f0)) {
-      showError('Δを自動計算するには 船幅 B と乾げん f₀ を入力してください。');
-      return;
-    }
-    const dCalc = f0 - (0.075 * N + W) / (0.78 * L * B);
-    delta = 0.5 * L * B * dCalc;
-    steps.push({ label: '喫水 d = f₀ − (0.075N+W)/(0.78LB)', val: dCalc.toFixed(4) + ' m' });
+    // Δ自動計算: d = D − ( f₀ − (0.075N+W)/(0.78L·B) )
+    if (isNaN(B) || B <= 0)     { showError('Δを自動計算するには 船幅 B を入力してください。'); return; }
+    if (isNaN(Dval) || Dval <= 0) { showError('Δを自動計算するには 船の深さ D を入力してください。'); return; }
+    if (isNaN(f0) || f0 < 0)    { showError('Δを自動計算するには 乾げん f₀ を入力してください。'); return; }
+
+    const inner = f0 - (0.075 * N + W) / (0.78 * L * B);
+    const d = Dval - inner;
+    delta = 0.5 * L * B * d;
+
+    steps.push({ label: '内項 f₀ − (0.075N+W)/(0.78LB)', val: inner.toFixed(4) + ' m' });
+    steps.push({ label: '喫水 d = D − 内項', val: d.toFixed(4) + ' m' });
     steps.push({ label: 'Δ = 0.5 × L × B × d', val: delta.toFixed(4) + ' トン' });
   }
 
@@ -168,17 +198,13 @@ function calculate() {
   if (unit === 'kW') {
     ratio = engine / delta;
     ratioLabel = 'kW/Δ';
-    if (ratio > 88) {
-      capNote = 'kW/Δ > 88 のため kW/Δ = 88 として計算';
-    }
+    if (ratio > 88) capNote = 'kW/Δ > 88 のため kW/Δ = 88 として計算';
     V = 0.914 * Math.sqrt(L) * Math.pow(Math.min(ratio, 88), 0.623);
     formula = 'V = 0.914 × √L × (kW/Δ)^0.623';
   } else {
     ratio = engine / delta;
     ratioLabel = 'PS/Δ';
-    if (ratio > 120) {
-      capNote = 'PS/Δ > 120 のため PS/Δ = 120 として計算';
-    }
+    if (ratio > 120) capNote = 'PS/Δ > 120 のため PS/Δ = 120 として計算';
     V = 0.755 * Math.sqrt(L) * Math.pow(Math.min(ratio, 120), 0.623);
     formula = 'V = 0.755 × √L × (PS/Δ)^0.623';
   }
